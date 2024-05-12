@@ -60,12 +60,12 @@ def predict():
         print("Actual Room Occupancy Count", int(target_sample),"\tPredicted output:", int(predict_sample[0]))
         # Assign the true label and predicted label into Point
         point = Point("predict_value")\
-            .field("Actual_Occupancy_Count", target_sample)\
-            .field("Predicted_Occupancy_Count", predict_sample[0])
+            .field("TemperatureS2", target_sample)\
+            .field("TemperatureS2", predict_sample[0])
         
         # Write that Point into database
         write_api.write(BUCKET, os.environ.get('INFLUXDB_ORG'), point)
-        return jsonify({"Actual Room Occupancy Count": int(target_sample), "Predicted output": int(predict_sample[0])}), 200
+        return jsonify({"Actual TemperatureS2": int(target_sample), "Predicted output": int(predict_sample[0])}), 200
     
     except:
         # Something error with data or model
