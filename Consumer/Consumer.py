@@ -25,6 +25,8 @@ client = InfluxDBClient(
 )
 write_api = client.write_api(write_options=ASYNCHRONOUS)  # Use asynchronous write to InfluxDB
 
+# Use
+
 # MQTT broker configuration: Setting up the MQTT client and connecting to the broker using provided URL and default port 1883
 MQTT_BROKER_URL = os.environ.get('MQTT_URL')
 MQTT_PUBLISH_TOPIC = "@msg/data"
