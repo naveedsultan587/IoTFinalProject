@@ -1,11 +1,9 @@
 """
-Real-Time prediction
-Retrieve streaming data from the consumer and predict the number 
-of people inside the room. Utilize Flask, a simple REST API server, 
-as the endpoint for data feeding.
+Real-Time Prediction- Group 4
+This script sets up a Flask web server to handle real-time temperature predictions using a pre-trained SVM model.
 """
 
-# Importing relevant modules
+# Importing necessary libraries
 import joblib
 import pandas as pd
 from flask import Flask, request, jsonify
@@ -15,88 +13,78 @@ from influxdb_client import InfluxDBClient, Point
 from influxdb_client.client.write_api import ASYNCHRONOUS
 import json
 
-# Load the trained model
-#joblib.load(filename, mmap_mode=None)
-#Reconstruct a Python object from a file persisted with joblib.dump.
-svm_model = joblib.load('svm_model.pkl')
-svm_columns = joblib.load("svm_model_columns.pkl")
+# Loading the trained SVM model and the column names used for the model input
+svm_model = joblib.load('svm_model.pkl')  # Load SVM model from file
+svm_columns = joblib.load("svm_model_columns.pkl")  # Load column names for the model input
 
-# Load environment variables from ".env"
+# Load environment variables from a ".env" file for configuration and security
 load_dotenv()
 
-# InfluxDB config
+# Configuration for InfluxDB: establish connection details using environment variables
 BUCKET = os.environ.get('INFLUXDB_BUCKET')
-print("connecting to",os.environ.get('INFLUXDB_URL'))
+print("Connecting to InfluxDB at URL:", os.environ.get('INFLUXDB_URL'))
 client = InfluxDBClient(
     url=str(os.environ.get('INFLUXDB_URL')),
     token=str(os.environ.get('INFLUXDB_TOKEN')),
     org=os.environ.get('INFLUXDB_ORG')
 )
-write_api = client.write_api()
+write_api = client.write_api()  # Asynchronous write to InfluxDB
 
-# Create simple REST API server
+# Initialize Flask app for creating a REST API server
 app = Flask(__name__)
 
-# Create a list to store the last five temperature readings
+# A list to store the last five temperature readings, necessary for model input
 recent_temperatures = []
 
-# Default route: check if model is available.
+# Default route to check if the model is loaded properly
 @app.route('/')
 def check_model():
     if svm_model:
         return "Model is ready for prediction"
-    return "Server is running but something wrongs with the model"
+    return "Server is running but something is wrong with the model"
 
-# Predict route: predict the output from streaming data
+# Route to handle POST requests for predictions
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
-        # Parse the JSON data from the request
+        # Extracting JSON data from the POST request
         json_text = request.data
         json_data = json.loads(json_text)
 
-        # Check if the data contains the expected key 'temp_BMP280'
+        # Validate presence of expected temperature key in the data
         if 'Temperature' not in json_data:
             return "Invalid input: 'Temperature' key not found in input data.", 400
         
-        # Extract the temperature value
+        # Read and append the temperature value to the recent temperatures list
         temp = json_data['Temperature']
-        print("temp = ", temp)
-        # Append the temperature reading to the list of recent temperatures
         recent_temperatures.append(temp)
-        print("recent_temperature = ",recent_temperatures)
-        # Maintain the list at a length of exactly five readings
+        
+        # Maintain the list at exactly five readings to match the model's input requirements
         if len(recent_temperatures) > 5:
             recent_temperatures.pop(0)
         
-        # Check if we have enough readings to make a prediction
+        # Check if enough readings are available to make a prediction
         if len(recent_temperatures) < 5:
             return "Insufficient data: Waiting for five temperature readings before predicting.", 200
         
-        # Create a DataFrame from the recent temperatures
+        # Use recent temperature readings to make a prediction with the SVM model
         query = pd.DataFrame([recent_temperatures], columns=svm_columns)
-        
-        # Make the prediction using the SVM model
         predict_sample = svm_model.predict(query)
+        predicted_output = float(predict_sample[0])  # Converting prediction result to float for precision
         
-        # Convert the predicted value to float
-        predicted_output = float(predict_sample[0])
-        
-        # Log the predicted output
-        print(f"Predicted output: {predicted_output}")
-
-        # Create a Point with the predicted temperature and write it to InfluxDB
+        # Log and write the predicted temperature to InfluxDB
         point = Point("predicted_temperature")\
             .field("next_temperature", predicted_output)\
-            .field("Error", abs((predicted_output-float(temp))*100/float(temp)))
+            .field("Error", abs((predicted_output - float(temp)) * 100 / float(temp)))
         write_api.write(BUCKET, os.environ.get('INFLUXDB_ORG'), point)
 
-        # Return the predicted output as JSON response
+        # Return the predicted temperature in JSON format
         return jsonify({"Predicted output": predicted_output}), 200
     
-    except:
-        # Something error with data or model
-        return "Recheck the data", 400
+    except Exception as e:
+        # Handle errors gracefully and provide feedback
+        return f"Error processing the prediction request: {str(e)}", 400
     
+# Condition to ensure the script runs only when executed, not when imported
 if __name__ == '__main__':
-    app.run()
+    app.run()  # Start the Flask application
