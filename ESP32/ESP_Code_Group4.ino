@@ -147,11 +147,10 @@ void subspendAllTask(void *pvParameters) {
     // Suspend specific tasks to free up resources.
     vTaskSuspend(sendTaskHandle);
     vTaskSuspend(receiveTaskHandle);
-    Serial.println("All tasks are suspended");
+   
     // Disconnect WiFi to save power.
     WiFi.disconnect(); 
-    // Put the ESP32 into deep sleep mode to significantly reduce power consumption.
-    Serial.println("Go to bed now.");
+ 
     esp_deep_sleep_start();
   }
 }
