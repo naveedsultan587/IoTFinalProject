@@ -9,9 +9,9 @@
 #include <esp_sleep.h>
 
 /********************* WiFi and MQTT Broker Configuration ****************************/
-const char* ssid = "TP-LINK_E0BE";                  // WiFi SSID
-const char* password = "14061653";                   // WiFi password
-const char* mqtt_server = "192.168.1.4";             // MQTT Broker IP address
+const char* ssid = "Farhan";                  // WiFi SSID
+const char* password = "1234asdfgh";                   // WiFi password
+const char* mqtt_server = "192.168.171.188";             // MQTT Broker IP address
 const int mqtt_port = 1883;                          // MQTT Broker port
 const char* mqtt_Client = "";                        // MQTT Client ID (if needed)
 const char* mqtt_username = "";                      // MQTT username (if needed)
@@ -77,8 +77,8 @@ void setup() {
   }
 
   Queue = xQueueCreate(100, sizeof(struct dataRead)); // Create a queue capable of holding 100 `dataRead` structs
-  xTaskCreate(subspendAllTask, "Subspend_Task", 2048, NULL, 1, NULL);  // Task to manage task suspension
-  xTaskCreate(sendToQueue, "Sender", 2048, NULL, 3, &sendTaskHandle);  // Task to send sensor data to the queue
+  xTaskCreate(subspendAllTask, "Subspend_Task", 2048, NULL, 3, NULL);  // Task to manage task suspension
+  xTaskCreate(sendToQueue, "Sender", 2048, NULL, 1, &sendTaskHandle);  // Task to send sensor data to the queue
   xTaskCreate(receiveFromQueue, "Receiver", 2048, NULL, 2, &receiveTaskHandle);  // Task to process data from the queue
 }
 
@@ -130,8 +130,8 @@ void receiveFromQueue(void *parameter) {
     // Prepare JSON string with sensor data.
     String data = "{\"Temperature\":" + String(currentData.Temperature) +
                   ",\"Humidity\":" + String(currentData.Humidity) +
-                  ",\"Air_Temperature\":" + String(currentData.airTemperature) +
-                  ",\"Air_Pressure\":" + String(currentData.airPressure) + "}";
+                  ",\"TemperatureS2\":" + String(currentData.airTemperature) +
+                  ",\"Pressure\":" + String(currentData.airPressure) + "}";
     Serial.println(data);  // Debug output to Serial.
     data.toCharArray(msg, (data.length() + 1));  // Convert string to char array.
     client.publish("@msg/data", msg);  // Publish sensor data to MQTT topic.
