@@ -12,7 +12,7 @@ This project demonstrates an IoT system using ESP32 for sensor data collection, 
 - **ESP32**: Handles sensor data and publishes it to MQTT.
 - **Raspberry Pi**: Acts as an MQTT broker and hosts Docker containers for data processing.
 - **Machine Learning**: Includes training and real-time prediction models for temperature data. 
-- **InfluxDb**: To store Real time and predicted values
+- **InfluxDb**: To store Real-time and predicted values
 
 ## Repository Structure
 - `/ESP32/`: Code for interfacing ESP32 with sensors and MQTT.
@@ -21,11 +21,11 @@ This project demonstrates an IoT system using ESP32 for sensor data collection, 
 - `/DataAnalytics/RealTimePrediction/`: Flask app for deploying models and making predictions.
 
 ## Setup Instructions
-1. **Influxdb**: Deploy influxdb on cloud to store data.
+1. **Influxdb**: Deploy influxdb on the cloud to store data.
 1. **ESP32 Setup**: Run ESP32 code to your ESP32 devices to collec sonsor data.
-2. **Raspberry Pi Setup**: Run Consumer file in Raspberry by using configuration provided to retrieve data from esp32 and write it to ifluxdb and provide for real time prediction.
-3. **Model Training**: Execute scripts on Model file to train model. Get the csv file from influxdb.
-4. **Real-Time Prediction**: Deploy your trained model to predict temperature and store it to the influxdb.
+2. **Raspberry Pi Setup**: Run the Consumer file in Raspberry by using the configuration provided to retrieve data from esp32 and write it to ifluxdb and provide for real-time prediction.
+3. **Model Training**: Execute scripts on the Model file to train the model. Get the CSV file from influxdb.
+4. **Real-Time Prediction**: Deploy your trained model to predict the temperature and store it to the influxdb.
 
 
 ## Technologies Used
